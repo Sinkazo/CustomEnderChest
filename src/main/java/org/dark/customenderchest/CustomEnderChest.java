@@ -1,6 +1,9 @@
 package org.dark.customenderchest;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.dark.customenderchest.commands.EnderChestCommand;
+import org.dark.customenderchest.listeners.EnderChestListener;
+import org.dark.customenderchest.utilities.DatabaseHandler;
 
 public class CustomEnderChest extends JavaPlugin {
 

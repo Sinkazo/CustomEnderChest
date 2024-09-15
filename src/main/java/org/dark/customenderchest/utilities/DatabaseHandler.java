@@ -1,9 +1,9 @@
-package org.dark.customenderchest;
+package org.dark.customenderchest.utilities;
 
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.dark.customenderchest.CustomEnderChest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

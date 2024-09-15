@@ -1,4 +1,4 @@
-package org.dark.customenderchest;
+package org.dark.customenderchest.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -10,6 +10,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.block.Action;
+import org.dark.customenderchest.CustomEnderChest;
+import org.dark.customenderchest.utilities.DatabaseHandler;
 
 public class EnderChestListener implements Listener {
 
