@@ -1,0 +1,24 @@
+# Configuración del plugin CustomEnderChest
+inventory-title: "Custom EnderChest"
+default-lines: 1
+permissions:
+  EnderChestBar:
+    '1': "EnderChestBar.1"
+    '2': "EnderChestBar.2"
+    '3': "EnderChestBar.3"
+    '4': "EnderChestBar.4"
+    '5': "EnderChestBar.5"
+    '6': "EnderChestBar.6"
+
+messages:
+  open: "&aEnderChest abierto!"
+  no-permission-open: "&cNo tienes permiso para abrir tu EnderChest."
+  no-permission-view: "&cNo tienes permiso para ver EnderChests."
+  no-permission-reload: "&cNo tienes permiso para recargar la configuración."
+  view-usage: "&cUso: /enderchest view <jugador>"
+  viewing: "&aViendo el EnderChest de &f%player%"
+  no-enderchest-found: "&cNo se pudo encontrar el EnderChest del jugador especificado."
+  invalid-uuid: "&cUUID del jugador no válido."
+  only-players: "&cEste comando solo puede ser usado por jugadores."
+  config-reloaded: "&aConfiguración recargada correctamente."
+  usage: "&cUso: /enderchest <open|view|reload>"
