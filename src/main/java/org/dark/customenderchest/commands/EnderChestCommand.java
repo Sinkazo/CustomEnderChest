@@ -7,21 +7,32 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.dark.customenderchest.CustomEnderChest;
 import org.dark.customenderchest.utilities.DatabaseHandler;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-public class EnderChestCommand implements CommandExecutor {
+public class EnderChestCommand implements CommandExecutor, Listener {
 
     private final CustomEnderChest plugin;
     private final DatabaseHandler databaseHandler;
 
+    // Mapa para asociar jugadores con inventarios que se están viendo
+    private final Map<UUID, UUID> openEnderChests = new HashMap<>();
+
     public EnderChestCommand(CustomEnderChest plugin, DatabaseHandler databaseHandler) {
         this.plugin = plugin;
         this.databaseHandler = databaseHandler;
+
+        // Registrar el listener para capturar el evento de cierre de inventario
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     @Override
@@ -60,7 +71,8 @@ public class EnderChestCommand implements CommandExecutor {
             return;
         }
 
-        openCustomEnderChest(player, player.getUniqueId(), player.getName());
+        // Abre el EnderChest personal y envía el mensaje del config para su propio EnderChest
+        openCustomEnderChest(player, player.getUniqueId(), player.getName(), true);
     }
 
     private void handleViewCommand(CommandSender sender, String[] args) {
@@ -92,7 +104,8 @@ public class EnderChestCommand implements CommandExecutor {
         }
 
         if (sender instanceof Player) {
-            openCustomEnderChest((Player) sender, targetUUID, targetName);
+            // Abre el EnderChest de otro jugador y envía el mensaje correspondiente
+            openCustomEnderChest((Player) sender, targetUUID, targetName, false);
         } else {
             sender.sendMessage(getMessage("only-players"));
         }
@@ -108,18 +121,30 @@ public class EnderChestCommand implements CommandExecutor {
         sender.sendMessage(getMessage("config-reloaded"));
     }
 
-    private void openCustomEnderChest(Player viewer, UUID targetUUID, String targetName) {
+    // Método para abrir el EnderChest del jugador objetivo o el propio
+    private void openCustomEnderChest(Player viewer, UUID targetUUID, String targetName, boolean isPersonal) {
         int lines = getEnderChestLines(targetUUID);
         Inventory customInventory = Bukkit.createInventory(null, lines * 9,
-                plugin.getConfig().getString("inventory-title", "Custom EnderChest") + " - " + targetName);
+                plugin.getConfig().getString("inventory-title", "Custom EnderChest") + (isPersonal ? "" : " - " + targetName));
 
         ItemStack[] items = databaseHandler.loadInventory(targetUUID);
         if (items != null && items.length > 0) {
             customInventory.setContents(items);
         }
 
+        // Almacenar que este jugador está viendo el EnderChest de otro (o el suyo)
+        openEnderChests.put(viewer.getUniqueId(), targetUUID);
+
         viewer.openInventory(customInventory);
-        viewer.sendMessage(getMessage("viewing").replace("%player%", targetName));
+
+        // Enviar el mensaje adecuado (personal o para ver el de otro jugador)
+        if (isPersonal) {
+            viewer.sendMessage(getMessage("viewing-own")); // Mensaje personalizado para su propio EnderChest
+        } else {
+            viewer.sendMessage(getMessage("viewing").replace("%player%", targetName));
+        }
+
+        // Reproducir sonido
         viewer.playSound(viewer.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
     }
 
@@ -138,5 +163,23 @@ public class EnderChestCommand implements CommandExecutor {
     private String getMessage(String path) {
         return ChatColor.translateAlternateColorCodes('&',
                 plugin.getConfig().getString("messages." + path, "Message not found: " + path));
+    }
+
+    // Guardar el inventario cuando el jugador cierra el EnderChest
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        Player player = (Player) event.getPlayer();
+        UUID viewerUUID = player.getUniqueId();
+
+        // Verificar si el jugador estaba viendo su propio EnderChest o el de otro
+        if (openEnderChests.containsKey(viewerUUID)) {
+            UUID targetUUID = openEnderChests.get(viewerUUID);
+
+            // Guardar el inventario de la base de datos del jugador que estaba viendo
+            databaseHandler.saveInventory(targetUUID, event.getInventory().getContents());
+
+            // Eliminar la referencia de la visualización
+            openEnderChests.remove(viewerUUID);
+        }
     }
 }

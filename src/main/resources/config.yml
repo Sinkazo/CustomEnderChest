@@ -17,6 +17,7 @@ messages:
   no-permission-reload: "&cNo tienes permiso para recargar la configuración."
   view-usage: "&cUso: /enderchest view <jugador>"
   viewing: "&aViendo el EnderChest de &f%player%"
+  viewing-own: "&aEstás viendo tu EnderChest"
   no-enderchest-found: "&cNo se pudo encontrar el EnderChest del jugador especificado."
   invalid-uuid: "&cUUID del jugador no válido."
   only-players: "&cEste comando solo puede ser usado por jugadores."
