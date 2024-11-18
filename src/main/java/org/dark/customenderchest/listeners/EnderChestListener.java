@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -14,9 +15,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.block.Action;
 import org.dark.customenderchest.CustomEnderChest;
 import org.dark.customenderchest.utilities.DatabaseHandler;
+import org.bukkit.event.inventory.InventoryType;
+
+import java.util.Arrays;
 
 public class EnderChestListener implements Listener {
-
     private final CustomEnderChest plugin;
     private final DatabaseHandler databaseHandler;
 
@@ -25,61 +28,64 @@ public class EnderChestListener implements Listener {
         this.databaseHandler = databaseHandler;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onEnderChestOpen(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK ||
+                event.getClickedBlock() == null ||
+                event.getClickedBlock().getType() != Material.ENDER_CHEST) {
+            return;
+        }
+
+        event.setCancelled(true);
         Player player = event.getPlayer();
-
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.ENDER_CHEST) {
-            event.setCancelled(true);
-
-            int currentLines = getEnderChestLines(player);
-            if (currentLines * 9 > 54) {
-                currentLines = 6;  // Ajustar a un máximo de 6 líneas
-            }
-
-            Inventory customInventory = Bukkit.createInventory(player, currentLines * 9, plugin.getConfig().getString("inventory-title", "Custom EnderChest"));
-
-            ItemStack[] items = databaseHandler.loadInventory(player.getUniqueId());
-
-            // Recortar el inventario si el jugador ahora tiene menos líneas
-            if (items != null && items.length > 0) {
-                if (items.length > currentLines * 9) {
-                    // Recortar los ítems que no caben
-                    ItemStack[] trimmedItems = new ItemStack[currentLines * 9];
-                    System.arraycopy(items, 0, trimmedItems, 0, currentLines * 9);
-                    customInventory.setContents(trimmedItems);
-                } else {
-                    customInventory.setContents(items);
-                }
-            }
-
-            player.openInventory(customInventory);
-
-            // Reproducir sonido
-            player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
-
-            // Enviar mensaje
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getConfig().getString("messages.viewing-own", "&aEstás viendo tu EnderChest")));
-        }
+        openEnderChest(player);
     }
 
-    @EventHandler
+    public void openEnderChest(Player player) {
+        int lines = getEnderChestLines(player);
+        String title = ChatColor.translateAlternateColorCodes('&',
+                plugin.getConfig().getString("inventory-title", "Custom EnderChest"));
+
+        Inventory enderChest = Bukkit.createInventory(player, lines * 9, title);
+        ItemStack[] items = databaseHandler.loadInventory(player.getUniqueId());
+
+        if (items != null) {
+            enderChest.setContents(Arrays.copyOf(items, enderChest.getSize()));
+        }
+
+        player.openInventory(enderChest);
+        player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
+
+        String message = ChatColor.translateAlternateColorCodes('&',
+                plugin.getConfig().getString("messages.viewing-own", "&aViewing your EnderChest"));
+        player.sendMessage(message);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
     public void onInventoryClose(InventoryCloseEvent event) {
-        Player player = (Player) event.getPlayer();
-        if (event.getView().getTitle().equals(plugin.getConfig().getString("inventory-title", "Custom EnderChest"))) {
-            databaseHandler.saveInventory(player.getUniqueId(), event.getInventory().getContents());
+        if (!(event.getPlayer() instanceof Player)) return;
+
+        String title = ChatColor.translateAlternateColorCodes('&',
+                plugin.getConfig().getString("inventory-title", "Custom EnderChest"));
+
+        if (event.getView().getTitle().equals(title)) {
+            Player player = (Player) event.getPlayer();
+            ItemStack[] contents = event.getInventory().getContents();
+
+            // Schedule the save for the next tick to ensure all changes are captured
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    databaseHandler.saveInventory(player.getUniqueId(), contents));
+
+            player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_CLOSE, 1.0f, 1.0f);
         }
     }
 
-    // Obtener las líneas de acuerdo a los permisos actuales del jugador
     private int getEnderChestLines(Player player) {
         for (int i = 6; i > 0; i--) {
             if (player.hasPermission("EnderChestBar." + i)) {
-                return i;
+                return Math.min(i, 6);
             }
         }
-        // Si no tiene permisos para más líneas, devuelve las líneas por defecto
         return plugin.getConfig().getInt("default-lines", 1);
     }
 }

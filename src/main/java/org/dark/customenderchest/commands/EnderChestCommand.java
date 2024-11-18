@@ -3,9 +3,7 @@ package org.dark.customenderchest.commands;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,9 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.dark.customenderchest.CustomEnderChest;
 import org.dark.customenderchest.utilities.DatabaseHandler;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class EnderChestCommand implements CommandExecutor, Listener {
 
@@ -86,25 +82,15 @@ public class EnderChestCommand implements CommandExecutor, Listener {
             return;
         }
 
-        Player target = Bukkit.getPlayer(args[1]);
-        UUID targetUUID;
-        String targetName;
+        String targetName = args[1];
+        UUID targetUUID = getUUIDFromName(targetName);
 
-        if (target != null && target.isOnline()) {
-            targetUUID = target.getUniqueId();
-            targetName = target.getName();
-        } else {
-            try {
-                targetUUID = UUID.fromString(args[1]);
-                targetName = args[1];
-            } catch (IllegalArgumentException e) {
-                sender.sendMessage(getMessage("invalid-uuid"));
-                return;
-            }
+        if (targetUUID == null) {
+            sender.sendMessage(getMessage("invalid-uuid"));
+            return;
         }
 
         if (sender instanceof Player) {
-            // Abre el EnderChest de otro jugador y envía el mensaje correspondiente
             openCustomEnderChest((Player) sender, targetUUID, targetName, false);
         } else {
             sender.sendMessage(getMessage("only-players"));
@@ -148,6 +134,20 @@ public class EnderChestCommand implements CommandExecutor, Listener {
         viewer.playSound(viewer.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
     }
 
+    // Obtener el UUID del jugador a partir del nombre (online u offline)
+    private UUID getUUIDFromName(String playerName) {
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        if (onlinePlayer != null) {
+            return onlinePlayer.getUniqueId();
+        } else {
+            try {
+                return Bukkit.getOfflinePlayer(playerName).getUniqueId();
+            } catch (Exception e) {
+                return null; // Si no se encuentra el jugador ni se puede obtener el UUID
+            }
+        }
+    }
+
     private int getEnderChestLines(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {
@@ -182,4 +182,5 @@ public class EnderChestCommand implements CommandExecutor, Listener {
             openEnderChests.remove(viewerUUID);
         }
     }
+
 }

@@ -1,9 +1,8 @@
 name: CustomEnderChest
 version: '${project.version}'
 main: org.dark.customenderchest.CustomEnderChest
-api-version: '1.21'
-load: STARTUP
+api-version: '1.20'
 commands:
   enderchest:
     description: Comando para gestionar el EnderChest.
-    permission: EnderChestBar.open
+    aliases: [ec]

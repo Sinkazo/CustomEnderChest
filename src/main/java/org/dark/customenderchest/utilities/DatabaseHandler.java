@@ -10,85 +10,90 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class DatabaseHandler {
-
     private final Connection connection;
+    private final CustomEnderChest plugin;
 
     public DatabaseHandler(CustomEnderChest plugin) {
-        // Conectar a la base de datos SQLite
+        this.plugin = plugin;
         String url = "jdbc:sqlite:" + plugin.getDataFolder() + "/enderchest.db";
+
         try {
+            Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(url);
             createTable();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al conectar con la base de datos SQLite", e);
+        } catch (SQLException | ClassNotFoundException e) {
+            plugin.getLogger().severe("Failed to initialize database: " + e.getMessage());
+            throw new RuntimeException("Database initialization failed", e);
         }
     }
 
-    private void createTable() {
-        // Crear la tabla de inventarios
+    private void createTable() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS inventories (" +
                 "uuid TEXT PRIMARY KEY, " +
-                "inventory BLOB)";
+                "inventory BLOB NOT NULL)";
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
-    public void saveInventory(UUID uuid, ItemStack[] inventory) {
-        // Serializar el inventario a un array de bytes
+    public synchronized void saveInventory(UUID uuid, ItemStack[] inventory) {
+        if (uuid == null) return;
+
+        String query = "INSERT OR REPLACE INTO inventories (uuid, inventory) VALUES (?, ?)";
+
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             BukkitObjectOutputStream oos = new BukkitObjectOutputStream(bos)) {
+             BukkitObjectOutputStream oos = new BukkitObjectOutputStream(bos);
+             PreparedStatement stmt = connection.prepareStatement(query)) {
 
             oos.writeObject(inventory);
-            oos.flush();
-            byte[] inventoryData = bos.toByteArray();
+            byte[] serializedInventory = bos.toByteArray();
 
-            // Insertar o actualizar el inventario en la base de datos
-            String query = "REPLACE INTO inventories (uuid, inventory) VALUES (?, ?)";
-            try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                stmt.setString(1, uuid.toString());
-                stmt.setBytes(2, inventoryData);
-                stmt.executeUpdate();
-            }
-        } catch (IOException | SQLException e) {
-            e.printStackTrace();
+            stmt.setString(1, uuid.toString());
+            stmt.setBytes(2, serializedInventory);
+            stmt.executeUpdate();
+
+        } catch (SQLException | IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to save inventory for " + uuid, e);
         }
     }
 
-    public ItemStack[] loadInventory(UUID uuid) {
-        // Cargar el inventario desde la base de datos
+    public synchronized ItemStack[] loadInventory(UUID uuid) {
+        if (uuid == null) return new ItemStack[54];
+
         String query = "SELECT inventory FROM inventories WHERE uuid = ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, uuid.toString());
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                byte[] inventoryData = rs.getBytes("inventory");
-                try (ByteArrayInputStream bis = new ByteArrayInputStream(inventoryData);
-                     BukkitObjectInputStream ois = new BukkitObjectInputStream(bis)) {
 
-                    return (ItemStack[]) ois.readObject();
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    byte[] serializedInventory = rs.getBytes("inventory");
+
+                    try (ByteArrayInputStream bis = new ByteArrayInputStream(serializedInventory);
+                         BukkitObjectInputStream ois = new BukkitObjectInputStream(bis)) {
+
+                        return (ItemStack[]) ois.readObject();
+                    }
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException | IOException | ClassNotFoundException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to load inventory for " + uuid, e);
         }
-        return new ItemStack[0]; // Inventario vacío si no se encuentra nada
+
+        return new ItemStack[54];
     }
 
     public void closeConnection() {
-        // Cerrar la conexión a la base de datos
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "Failed to close database connection", e);
         }
     }
 }
