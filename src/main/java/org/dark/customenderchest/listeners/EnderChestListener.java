@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -29,7 +30,6 @@ public class EnderChestListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEnderChestOpen(PlayerInteractEvent event) {
-        // Intercept all Ender Chest interactions
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
                 event.getClickedBlock() != null &&
                 event.getClickedBlock().getType() == Material.ENDER_CHEST) {
@@ -41,13 +41,15 @@ public class EnderChestListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEnderChestInventoryOpen(InventoryCloseEvent event) {
-        // Prevent vanilla Ender Chest inventory from being opened
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player)) return;
+
+        Player player = (Player) event.getPlayer();
+
+        // Intercept any Ender Chest inventory opening
         if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) {
-            if (event.getPlayer() instanceof Player) {
-                Player player = (Player) event.getPlayer();
-                openEnderChest(player);
-            }
+            event.setCancelled(true);
+            openEnderChest(player);
         }
     }
 
