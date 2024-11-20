@@ -4,5 +4,6 @@ main: org.dark.customenderchest.CustomEnderChest
 api-version: '1.20'
 commands:
   enderchest:
-    description: Comando para gestionar el EnderChest.
-    aliases: [ec]
+    description: Manage your custom enderchest
+    aliases: [ec, echest, enc]
+    permission: enderchest.use

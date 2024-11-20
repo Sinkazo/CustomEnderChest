@@ -9,6 +9,7 @@ public class CustomEnderChest extends JavaPlugin {
     private DatabaseHandler databaseHandler;
     private EnderChestListener enderChestListener;
 
+
     @Override
     public void onEnable() {
         saveDefaultConfig();

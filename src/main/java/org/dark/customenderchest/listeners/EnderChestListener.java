@@ -15,7 +15,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.block.Action;
 import org.dark.customenderchest.CustomEnderChest;
 import org.dark.customenderchest.utilities.DatabaseHandler;
-import org.bukkit.event.inventory.InventoryType;
 
 import java.util.Arrays;
 
@@ -28,17 +27,28 @@ public class EnderChestListener implements Listener {
         this.databaseHandler = databaseHandler;
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEnderChestOpen(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK ||
-                event.getClickedBlock() == null ||
-                event.getClickedBlock().getType() != Material.ENDER_CHEST) {
-            return;
-        }
+        // Intercept all Ender Chest interactions
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
+                event.getClickedBlock() != null &&
+                event.getClickedBlock().getType() == Material.ENDER_CHEST) {
 
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        openEnderChest(player);
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+            openEnderChest(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEnderChestInventoryOpen(InventoryCloseEvent event) {
+        // Prevent vanilla Ender Chest inventory from being opened
+        if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) {
+            if (event.getPlayer() instanceof Player) {
+                Player player = (Player) event.getPlayer();
+                openEnderChest(player);
+            }
+        }
     }
 
     public void openEnderChest(Player player) {

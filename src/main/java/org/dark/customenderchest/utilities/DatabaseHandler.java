@@ -13,26 +13,59 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class DatabaseHandler {
-    private final Connection connection;
+    private Connection connection;
     private final CustomEnderChest plugin;
+    private final boolean useMySQLConfig;
 
     public DatabaseHandler(CustomEnderChest plugin) {
         this.plugin = plugin;
-        String url = "jdbc:sqlite:" + plugin.getDataFolder() + "/enderchest.db";
+        this.useMySQLConfig = plugin.getConfig().getBoolean("database.mysql", false);
+        initializeConnection();
+    }
 
+    private void initializeConnection() {
         try {
+            if (useMySQLConfig) {
+                connectMySQL();
+            } else {
+                connectSQLite();
+            }
+            createTable();
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to connect to primary database. Falling back to SQLite.");
+            connectSQLite();
+            try {
+                createTable();
+            } catch (SQLException sqlEx) {
+                plugin.getLogger().severe("Failed to create database table: " + sqlEx.getMessage());
+            }
+        }
+    }
+
+    private void connectMySQL() throws SQLException {
+        String host = plugin.getConfig().getString("database.host", "localhost");
+        int port = plugin.getConfig().getInt("database.port", 3306);
+        String database = plugin.getConfig().getString("database.database", "minecraft");
+        String username = plugin.getConfig().getString("database.username", "root");
+        String password = plugin.getConfig().getString("database.password", "");
+
+        String url = String.format("jdbc:mysql://%s:%d/%s", host, port, database);
+        connection = DriverManager.getConnection(url, username, password);
+    }
+
+    private void connectSQLite() {
+        try {
+            String url = "jdbc:sqlite:" + plugin.getDataFolder() + "/enderchest.db";
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(url);
-            createTable();
         } catch (SQLException | ClassNotFoundException e) {
-            plugin.getLogger().severe("Failed to initialize database: " + e.getMessage());
-            throw new RuntimeException("Database initialization failed", e);
+            plugin.getLogger().severe("Failed to connect to SQLite: " + e.getMessage());
         }
     }
 
     private void createTable() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS inventories (" +
-                "uuid TEXT PRIMARY KEY, " +
+                "uuid VARCHAR(36) PRIMARY KEY, " +
                 "inventory BLOB NOT NULL)";
 
         try (Statement stmt = connection.createStatement()) {

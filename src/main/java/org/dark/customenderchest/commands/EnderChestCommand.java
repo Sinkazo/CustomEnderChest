@@ -17,6 +17,7 @@ import java.util.*;
 
 public class EnderChestCommand implements CommandExecutor, Listener {
 
+
     private final CustomEnderChest plugin;
     private final DatabaseHandler databaseHandler;
 
@@ -182,5 +183,4 @@ public class EnderChestCommand implements CommandExecutor, Listener {
             openEnderChests.remove(viewerUUID);
         }
     }
-
 }
