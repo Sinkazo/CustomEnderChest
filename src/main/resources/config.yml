@@ -1,15 +1,33 @@
 # Configuración del plugin CustomEnderChest
-inventory-title: "Custom EnderChest"
 default-lines: 1
+
+inventory-titles:
+  Level 1: "&b&5EnderChest &e- &fLevel 1"
+  Level 2: "&b&5EnderChest &e- &fLevel 2"
+  Level 3: "&b&5EnderChest &e- &fLevel 3"
+  Level 4: "&b&5EnderChest &e- &fLevel 4"
+  Level 5: "&b&5EnderChest &e- &fLevel 5"
+  Level 6: "&b&5EnderChest &f- &eLevel 6"
 
 # Database Configuration
 database:
+  migrate-legacy-enderchest: true
   mysql: false
   host: localhost
   port: 3306
   database: minecraft
   username: root
   password: ''
+
+# User Cleanup Configuration
+user-cleanup:
+  enabled: false
+  days-inactive: 30
+
+# Data Export Configuration
+data-export:
+  enabled: false
+  direction: "db-to-mysql" # Can be: "db-to-mysql" or "mysql-to-db"
 
 permissions:
   EnderChestBar:
@@ -26,10 +44,11 @@ messages:
   no-permission-view: "&cYou do not have permission to view EnderChests."
   no-permission-reload: "&cYou do not have permission to reload the configuration."
   view-usage: "&cUsage: /enderchest view "
-  viewing: "&aViewing the EnderChest of &f%player%"
+  viewing: "&7You are now viewing %1%'s EnderChest"
   viewing-own: "&aYou are viewing your EnderChest"
   no-enderchest-found: "&cCould not find the specified player's EnderChest."
   invalid-uuid: "&cInvalid player UUID."
   only-players: "&cThis command can only be used by players."
   config-reloaded: "&aConfiguration reloaded successfully."
-  usage: "&cUsage: /enderchest <open|view|reload>"
+  usage: "&cUsage: /enderchest open"
+  achest-usage: "&cUsage: /achest <reload|view|delete> [player]"

@@ -7,3 +7,28 @@ commands:
     description: Manage your custom enderchest
     aliases: [ec, echest, enc]
     permission: enderchest.use
+  achest:
+    description: Admin commands for managing enderchests
+    aliases: [aec, adminenderchest]
+    permission: enderchest.admin
+
+permissions:
+  enderchest.use:
+    description: Allows use of basic enderchest commands
+    default: true
+  enderchest.admin:
+    description: Allows use of admin enderchest commands
+    default: op
+    children:
+      enderchest.admin.view: true
+      enderchest.admin.delete: true
+      enderchest.admin.reload: true
+  enderchest.admin.view:
+    description: Allows viewing other players' enderchests
+    default: op
+  enderchest.admin.delete:
+    description: Allows deleting enderchest data
+    default: op
+  enderchest.admin.reload:
+    description: Allows reload enderchest config
+    default: op

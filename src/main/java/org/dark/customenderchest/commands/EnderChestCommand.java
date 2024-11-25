@@ -43,12 +43,6 @@ public class EnderChestCommand implements CommandExecutor, Listener {
             case "open":
                 handleOpenCommand(sender);
                 break;
-            case "view":
-                handleViewCommand(sender, args);
-                break;
-            case "reload":
-                handleReloadCommand(sender);
-                break;
             default:
                 sender.sendMessage(getMessage("usage"));
         }
@@ -72,56 +66,20 @@ public class EnderChestCommand implements CommandExecutor, Listener {
         openCustomEnderChest(player, player.getUniqueId(), player.getName(), true);
     }
 
-    private void handleViewCommand(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(getMessage("view-usage"));
-            return;
-        }
-
-        if (!sender.hasPermission("EnderChestBar.view")) {
-            sender.sendMessage(getMessage("no-permission-view"));
-            return;
-        }
-
-        String targetName = args[1];
-        UUID targetUUID = getUUIDFromName(targetName);
-
-        if (targetUUID == null) {
-            sender.sendMessage(getMessage("invalid-uuid"));
-            return;
-        }
-
-        if (sender instanceof Player) {
-            openCustomEnderChest((Player) sender, targetUUID, targetName, false);
-        } else {
-            sender.sendMessage(getMessage("only-players"));
-        }
-    }
-
-    private void handleReloadCommand(CommandSender sender) {
-        if (!sender.hasPermission("EnderChestBar.reload")) {
-            sender.sendMessage(getMessage("no-permission-reload"));
-            return;
-        }
-
-        plugin.reloadConfig();
-        sender.sendMessage(getMessage("config-reloaded"));
-    }
-
     // Método para abrir el EnderChest del jugador objetivo o el propio
     private void openCustomEnderChest(Player viewer, UUID targetUUID, String targetName, boolean isPersonal) {
         int lines = getEnderChestLines(targetUUID);
-        Inventory customInventory = Bukkit.createInventory(null, lines * 9,
-                plugin.getConfig().getString("inventory-title", "Custom EnderChest") + (isPersonal ? "" : " - " + targetName));
+        String title = plugin.getInventoryTitleForLines(lines) + (isPersonal ? "" : " - " + targetName);
 
+        Inventory customInventory = Bukkit.createInventory(null, lines * 9, title);
         ItemStack[] items = databaseHandler.loadInventory(targetUUID);
+
         if (items != null && items.length > 0) {
-            customInventory.setContents(items);
+            // Only set contents up to the current permission level
+            customInventory.setContents(Arrays.copyOf(items, lines * 9));
         }
 
-        // Almacenar que este jugador está viendo el EnderChest de otro (o el suyo)
         openEnderChests.put(viewer.getUniqueId(), targetUUID);
-
         viewer.openInventory(customInventory);
 
         // Enviar el mensaje adecuado (personal o para ver el de otro jugador)

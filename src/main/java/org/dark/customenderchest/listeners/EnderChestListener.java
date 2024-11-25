@@ -36,6 +36,8 @@ public class EnderChestListener implements Listener {
 
             event.setCancelled(true);
             Player player = event.getPlayer();
+
+            // Use the same method as the command to open the custom EnderChest
             openEnderChest(player);
         }
     }
@@ -55,14 +57,14 @@ public class EnderChestListener implements Listener {
 
     public void openEnderChest(Player player) {
         int lines = getEnderChestLines(player);
-        String title = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("inventory-title", "Custom EnderChest"));
+        String title = plugin.getInventoryTitleForLines(lines);
 
         Inventory enderChest = Bukkit.createInventory(player, lines * 9, title);
         ItemStack[] items = databaseHandler.loadInventory(player.getUniqueId());
 
         if (items != null) {
-            enderChest.setContents(Arrays.copyOf(items, enderChest.getSize()));
+            // Only set contents up to the current permission level
+            enderChest.setContents(Arrays.copyOf(items, lines * 9));
         }
 
         player.openInventory(enderChest);
@@ -77,14 +79,15 @@ public class EnderChestListener implements Listener {
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player)) return;
 
-        String title = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("inventory-title", "Custom EnderChest"));
+        Player player = (Player) event.getPlayer();
 
-        if (event.getView().getTitle().equals(title)) {
-            Player player = (Player) event.getPlayer();
+        // Comprueba si es un inventario de Ender Chest o el personalizado
+        if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST ||
+                event.getView().getTitle().equals(plugin.getInventoryTitleForLines(getEnderChestLines(player)))) {
+
             ItemStack[] contents = event.getInventory().getContents();
 
-            // Schedule the save for the next tick to ensure all changes are captured
+            // Guardar asíncronamente para no bloquear el servidor
             Bukkit.getScheduler().runTask(plugin, () ->
                     databaseHandler.saveInventory(player.getUniqueId(), contents));
 
