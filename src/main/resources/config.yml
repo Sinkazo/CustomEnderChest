@@ -45,6 +45,7 @@ messages:
   no-permission-reload: "&cYou do not have permission to reload the configuration."
   view-usage: "&cUsage: /enderchest view "
   viewing: "&7You are now viewing %1%'s EnderChest"
+  # If set on '', this message is disabled when player open their enderchest.
   viewing-own: "&aYou are viewing your EnderChest"
   no-enderchest-found: "&cCould not find the specified player's EnderChest."
   invalid-uuid: "&cInvalid player UUID."
