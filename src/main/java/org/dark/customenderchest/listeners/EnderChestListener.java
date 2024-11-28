@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -74,7 +75,8 @@ public class EnderChestListener implements Listener {
         if(plugin.getConfig().getString("messages.viewing-own") != ""){
             String message = ChatColor.translateAlternateColorCodes('&',
                     plugin.getConfig().getString("messages.viewing-own", "&aViewing your EnderChest"));
-            player.sendMessage(message);
+
+            sendMessageExceptIfBlank(player, message);
         }
 
     }
@@ -107,4 +109,10 @@ public class EnderChestListener implements Listener {
         }
         return plugin.getConfig().getInt("default-lines", 1);
     }
+    
+	private void sendMessageExceptIfBlank(CommandSender sender, String message) {
+		if (!message.equals("")) {
+			sender.sendMessage(message);
+		}
+	}
 }
