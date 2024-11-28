@@ -117,7 +117,7 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 			}
 		}
 		return plugin.getConfig().getInt("default-lines", 1);
-	}
+	}	
 
 	private String getMessage(String path) {
 		return ChatColor.translateAlternateColorCodes('&',
@@ -126,7 +126,7 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 
 	private void sendMessageExceptIfBlank(CommandSender sender, String message) {
 		if (!message.equals("")) {
-			sendMessageExceptIfBlank(sender, getMessage(message));
+			sender.sendMessage(getMessage(message));
 		}
 	}
 
