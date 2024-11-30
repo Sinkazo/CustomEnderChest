@@ -1,23 +1,24 @@
 package org.dark.customenderchest.listeners;
 
+import java.util.Arrays;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.event.block.Action;
 import org.dark.customenderchest.CustomEnderChest;
 import org.dark.customenderchest.utilities.DatabaseHandler;
-
-import java.util.Arrays;
 
 public class EnderChestListener implements Listener {
     private final CustomEnderChest plugin;
@@ -54,7 +55,7 @@ public class EnderChestListener implements Listener {
             openEnderChest(player);
         }
     }
-
+    
     public void openEnderChest(Player player) {
         int lines = getEnderChestLines(player);
         String title = plugin.getInventoryTitleForLines(lines);
@@ -70,9 +71,14 @@ public class EnderChestListener implements Listener {
         player.openInventory(enderChest);
         player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
 
-        String message = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("messages.viewing-own", "&aViewing your EnderChest"));
-        player.sendMessage(message);
+        // Edited by Catalyst105 in Nov the 26, 2024
+        if(plugin.getConfig().getString("messages.viewing-own") != ""){
+            String message = ChatColor.translateAlternateColorCodes('&',
+                    plugin.getConfig().getString("messages.viewing-own", "&aViewing your EnderChest"));
+
+            sendMessageExceptIfBlank(player, message);
+        }
+
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -103,4 +109,10 @@ public class EnderChestListener implements Listener {
         }
         return plugin.getConfig().getInt("default-lines", 1);
     }
+    
+	private void sendMessageExceptIfBlank(CommandSender sender, String message) {
+		if (!message.equals("")) {
+			sender.sendMessage(message);
+		}
+	}
 }

@@ -38,6 +38,7 @@ permissions:
     '5': "EnderChestBar.5"
     '6': "EnderChestBar.6"
 
+# Leave blank ('') to disable a message.
 messages:
   open: "&aEnderChest opened!"
   no-permission-open: "&cYou do not have permission to open your EnderChest."

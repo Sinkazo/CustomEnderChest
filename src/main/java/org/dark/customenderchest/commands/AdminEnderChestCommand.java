@@ -48,11 +48,17 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
 
         return message;
     }
+    
+	private void sendMessageExceptIfBlank(CommandSender sender, String message) {
+		if (!message.equals("")) {
+			sender.sendMessage(getMessage(message));
+		}
+	}
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage(getMessage("achest-usage"));
+            sendMessageExceptIfBlank(sender, getMessage("achest-usage"));
             return true;
         }
 
@@ -64,20 +70,20 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
                 break;
             case "view":
                 if (args.length < 2) {
-                    sender.sendMessage(getMessage("view-usage"));
+                    sendMessageExceptIfBlank(sender, getMessage("view-usage"));
                     return true;
                 }
                 handleViewCommand(sender, args[1]);
                 break;
             case "delete":
                 if (args.length < 2) {
-                    sender.sendMessage(getMessage("achest-usage"));
+                    sendMessageExceptIfBlank(sender, getMessage("achest-usage"));
                     return true;
                 }
                 handleDeleteCommand(sender, args[1]);
                 break;
             default:
-                sender.sendMessage(getMessage("achest-usage"));
+                sendMessageExceptIfBlank(sender, getMessage("achest-usage"));
         }
 
         return true;
@@ -85,7 +91,7 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
 
     private void handleReloadCommand(CommandSender sender) {
         if (!sender.hasPermission("enderchest.admin.reload")) {
-            sender.sendMessage(getMessage("no-permission-reload"));
+            sendMessageExceptIfBlank(sender, getMessage("no-permission-reload"));
             return;
         }
 
@@ -103,21 +109,21 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
             openEnderChests.clear();
 
 
-            sender.sendMessage(getMessage("config-reloaded"));
+            sendMessageExceptIfBlank(sender, getMessage("config-reloaded"));
         } catch (Exception e) {
             plugin.getLogger().severe("Error during plugin reload: " + e.getMessage());
-            sender.sendMessage(getMessage("no-permission-reload"));
+            sendMessageExceptIfBlank(sender, getMessage("no-permission-reload"));
         }
     }
 
     private void handleViewCommand(CommandSender sender, String targetName) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(getMessage("only-players"));
+            sendMessageExceptIfBlank(sender, getMessage("only-players"));
             return;
         }
 
         if (!sender.hasPermission("enderchest.admin.view")) {
-            sender.sendMessage(getMessage("no-permission-view"));
+            sendMessageExceptIfBlank(sender, getMessage("no-permission-view"));
             return;
         }
 
@@ -125,7 +131,7 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
         UUID targetUUID = getPlayerUUID(targetName);
 
         if (targetUUID == null) {
-            sender.sendMessage(getMessage("no-enderchest-found"));
+            sendMessageExceptIfBlank(sender, getMessage("no-enderchest-found"));
             return;
         }
 
@@ -134,18 +140,18 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
 
     private void handleDeleteCommand(CommandSender sender, String targetName) {
         if (!sender.hasPermission("enderchest.admin.delete")) {
-            sender.sendMessage(getMessage("no-permission-view"));
+            sendMessageExceptIfBlank(sender, getMessage("no-permission-view"));
             return;
         }
 
         UUID targetUUID = getPlayerUUID(targetName);
         if (targetUUID == null) {
-            sender.sendMessage(getMessage("no-enderchest-found"));
+            sendMessageExceptIfBlank(sender, getMessage("no-enderchest-found"));
             return;
         }
 
         if (deletePlayerData(targetUUID)) {
-            sender.sendMessage(ChatColor.GREEN + "Successfully deleted EnderChest data for " + targetName);
+            sendMessageExceptIfBlank(sender, ChatColor.GREEN + "Successfully deleted EnderChest data for " + targetName);
 
             // Close the inventory if any player is viewing it
             for (Map.Entry<UUID, UUID> entry : openEnderChests.entrySet()) {
@@ -157,7 +163,7 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
                 }
             }
         } else {
-            sender.sendMessage(ChatColor.RED + "Failed to delete EnderChest data for " + targetName);
+            sendMessageExceptIfBlank(sender, ChatColor.RED + "Failed to delete EnderChest data for " + targetName);
         }
     }
 
