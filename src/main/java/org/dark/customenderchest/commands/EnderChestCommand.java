@@ -61,12 +61,9 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 			return;
 		}
 
-		// Abre el EnderChest personal y envía el mensaje del config para su propio
-		// EnderChest
 		openCustomEnderChest(player, player.getUniqueId(), player.getName(), true);
 	}
 
-	// Método para abrir el EnderChest del jugador objetivo o el propio
 	private void openCustomEnderChest(Player viewer, UUID targetUUID, String targetName, boolean isPersonal) {
 		int lines = getEnderChestLines(targetUUID);
 		String title = plugin.getInventoryTitleForLines(lines) + (isPersonal ? "" : " - " + targetName);
@@ -82,18 +79,15 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 		openEnderChests.put(viewer.getUniqueId(), targetUUID);
 		viewer.openInventory(customInventory);
 
-		// Enviar el mensaje adecuado (personal o para ver el de otro jugador)
 		if (isPersonal) {
-			sendMessageExceptIfBlank(viewer, getMessage("viewing-own")); // Mensaje personalizado para su propio EnderChest
+			sendMessageExceptIfBlank(viewer, getMessage("viewing-own")); //
 		} else {
 			sendMessageExceptIfBlank(viewer, getMessage("viewing").replace("%player%", targetName));
 		}
 
-		// Reproducir sonido
 		viewer.playSound(viewer.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
 	}
 
-	// Obtener el UUID del jugador a partir del nombre (online u offline)
 	private UUID getUUIDFromName(String playerName) {
 		Player onlinePlayer = Bukkit.getPlayer(playerName);
 		if (onlinePlayer != null) {
@@ -102,7 +96,7 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 			try {
 				return Bukkit.getOfflinePlayer(playerName).getUniqueId();
 			} catch (Exception e) {
-				return null; // Si no se encuentra el jugador ni se puede obtener el UUID
+				return null; //
 			}
 		}
 	}
@@ -130,20 +124,17 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 		}
 	}
 
-	// Guardar el inventario cuando el jugador cierra el EnderChest
+
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
 		Player player = (Player) event.getPlayer();
 		UUID viewerUUID = player.getUniqueId();
 
-		// Verificar si el jugador estaba viendo su propio EnderChest o el de otro
 		if (openEnderChests.containsKey(viewerUUID)) {
 			UUID targetUUID = openEnderChests.get(viewerUUID);
 
-			// Guardar el inventario de la base de datos del jugador que estaba viendo
 			databaseHandler.saveInventory(targetUUID, event.getInventory().getContents());
 
-			// Eliminar la referencia de la visualización
 			openEnderChests.remove(viewerUUID);
 		}
 	}

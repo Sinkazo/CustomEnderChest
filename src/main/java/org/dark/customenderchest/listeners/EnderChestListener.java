@@ -87,13 +87,11 @@ public class EnderChestListener implements Listener {
 
         Player player = (Player) event.getPlayer();
 
-        // Comprueba si es un inventario de Ender Chest o el personalizado
         if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST ||
                 event.getView().getTitle().equals(plugin.getInventoryTitleForLines(getEnderChestLines(player)))) {
 
             ItemStack[] contents = event.getInventory().getContents();
 
-            // Guardar asíncronamente para no bloquear el servidor
             Bukkit.getScheduler().runTask(plugin, () ->
                     databaseHandler.saveInventory(player.getUniqueId(), contents));
 

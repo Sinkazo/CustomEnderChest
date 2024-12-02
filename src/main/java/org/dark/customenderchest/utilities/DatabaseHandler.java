@@ -60,7 +60,7 @@ public class DatabaseHandler {
 
     private void createTables() {
         try (Statement stmt = connection.createStatement()) {
-            // Tabla principal de inventarios con columna de migración
+
             stmt.execute("CREATE TABLE IF NOT EXISTS inventories (" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "player_name VARCHAR(16), " +
@@ -68,7 +68,7 @@ public class DatabaseHandler {
                     "migrated BOOLEAN DEFAULT 0, " +
                     "last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
-            // Tabla de último acceso
+
             stmt.execute("CREATE TABLE IF NOT EXISTS last_access (" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "last_access TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
