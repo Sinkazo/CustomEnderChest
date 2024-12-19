@@ -88,18 +88,6 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 		viewer.playSound(viewer.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 1.0f);
 	}
 
-	private UUID getUUIDFromName(String playerName) {
-		Player onlinePlayer = Bukkit.getPlayer(playerName);
-		if (onlinePlayer != null) {
-			return onlinePlayer.getUniqueId();
-		} else {
-			try {
-				return Bukkit.getOfflinePlayer(playerName).getUniqueId();
-			} catch (Exception e) {
-				return null; //
-			}
-		}
-	}
 
 	private int getEnderChestLines(UUID uuid) {
 		Player player = Bukkit.getPlayer(uuid);
@@ -111,16 +99,20 @@ public class EnderChestCommand implements CommandExecutor, Listener {
 			}
 		}
 		return plugin.getConfig().getInt("default-lines", 1);
-	}	
-
-	private String getMessage(String path) {
-		return ChatColor.translateAlternateColorCodes('&',
-				plugin.getConfig().getString("messages." + path, "Message not found: " + path));
 	}
 
+	private String getMessage(String path) {
+		String message = plugin.getConfig().getString("messages." + path);
+		if (message == null || message.isEmpty()) {
+			return ""; // Retorna cadena vacía en lugar de mensaje de error
+		}
+		return ChatColor.translateAlternateColorCodes('&', message);
+	}
+
+
 	private void sendMessageExceptIfBlank(CommandSender sender, String message) {
-		if (!message.equals("")) {
-			sender.sendMessage(getMessage(message));
+		if (message != null && !message.trim().isEmpty()) {
+			sender.sendMessage(message);
 		}
 	}
 

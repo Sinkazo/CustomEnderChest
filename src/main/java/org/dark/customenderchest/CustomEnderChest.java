@@ -1,6 +1,8 @@
 package org.dark.customenderchest;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.defaults.HelpCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dark.customenderchest.commands.AdminEnderChestCommand;
 import org.dark.customenderchest.commands.EnderChestCommand;
@@ -30,6 +32,7 @@ public class CustomEnderChest extends JavaPlugin {
             getCommand("achest").setExecutor(adminCommand);
             getCommand("achest").setTabCompleter(adminCommand);
 
+
             getLogger().info("CustomEnderChest has been enabled successfully!");
         } catch (Exception e) {
             getLogger().severe("Failed to enable CustomEnderChest: " + e.getMessage());
@@ -43,14 +46,6 @@ public class CustomEnderChest extends JavaPlugin {
             databaseHandler.closeConnection();
         }
         getLogger().info("CustomEnderChest has been disabled!");
-    }
-
-    public DatabaseHandler getDatabaseHandler() {
-        return databaseHandler;
-    }
-
-    public EnderChestListener getEnderChestListener() {
-        return enderChestListener;
     }
 
     // New method to get custom inventory title for each permission level

@@ -34,26 +34,29 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
     }
 
     private String getMessage(String path) {
-        return ChatColor.translateAlternateColorCodes('&',
-                config.getString("messages." + path, "&cMessage not found: " + path));
+        String message = plugin.getConfig().getString("messages." + path);
+        if (message == null || message.isEmpty()) {
+            return ""; // Retorna cadena vacía en lugar de mensaje de error
+        }
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     private String getMessage(String path, String... replacements) {
-        String message = ChatColor.translateAlternateColorCodes('&',
-                config.getString("messages." + path, "&cMessage not found: " + path));
-
-        for (int i = 0; i < replacements.length; i++) {
-            message = message.replace("%" + (i + 1) + "%", replacements[i]);
+        String message = getMessage(path);
+        if (!message.isEmpty()) {
+            for (int i = 0; i < replacements.length; i++) {
+                message = message.replace("%" + (i + 1) + "%", replacements[i]);
+            }
         }
-
         return message;
     }
-    
-	private void sendMessageExceptIfBlank(CommandSender sender, String message) {
-		if (!message.equals("")) {
-			sender.sendMessage(getMessage(message));
-		}
-	}
+
+    private void sendMessageExceptIfBlank(CommandSender sender, String message) {
+        if (message != null && !message.trim().isEmpty()) {
+            sender.sendMessage(message);
+        }
+    }
+
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -65,6 +68,9 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
         String subCommand = args[0].toLowerCase();
 
         switch (subCommand) {
+            case "help":
+                showHelpCommand(sender);
+                break;
             case "reload":
                 handleReloadCommand(sender);
                 break;
@@ -87,6 +93,21 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
         }
 
         return true;
+    }
+
+    private void showHelpCommand(CommandSender sender){
+        if (!sender.hasPermission("enderchest.admin.delete")){
+            sendMessageExceptIfBlank(sender, getMessage("no-permission-help"));
+        } else {
+            sender.sendMessage(ChatColor.COLOR_CHAR +  "(§f§m-----------------------------------------------------");
+            sender.sendMessage(ChatColor.COLOR_CHAR + "§bAdmin Commands §f- §dCustomEnderChest");
+            sender.sendMessage("");
+            sender.sendMessage(ChatColor.COLOR_CHAR +"§e/achest reload §f- §7Apply changes in the config file");
+            sender.sendMessage(ChatColor.COLOR_CHAR +"§e/achest view (player/UUID) §f- §7Show player's CustomEnderChest inventory");
+            sender.sendMessage(ChatColor.COLOR_CHAR +"§e/achest delete (player/UUID) §f- §7Delete player's CustomEnderChest inventory");
+            sender.sendMessage(ChatColor.COLOR_CHAR +  "(§f§m-----------------------------------------------------");
+        }
+
     }
 
     private void handleReloadCommand(CommandSender sender) {
@@ -253,6 +274,10 @@ public class AdminEnderChestCommand implements CommandExecutor, TabCompleter, Li
             }
             if (sender.hasPermission("enderchest.admin.reload")) {
                 completions.add("reload");
+            }
+
+            if (sender.hasPermission("enderchest.admin.help")) {
+                completions.add("help");
             }
             return filterCompletions(completions, args[0]);
         }

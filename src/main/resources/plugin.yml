@@ -23,6 +23,7 @@ permissions:
       enderchest.admin.view: true
       enderchest.admin.delete: true
       enderchest.admin.reload: true
+      enderchest.admin.help: true
   enderchest.admin.view:
     description: Allows viewing other players' enderchests
     default: op

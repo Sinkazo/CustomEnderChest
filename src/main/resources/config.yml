@@ -44,6 +44,7 @@ messages:
   no-permission-open: "&cYou do not have permission to open your EnderChest."
   no-permission-view: "&cYou do not have permission to view EnderChests."
   no-permission-reload: "&cYou do not have permission to reload the configuration."
+  no-permission-help: "&cYou do not have permission to view Admin EnderChests commands."
   view-usage: "&cUsage: /enderchest view "
   viewing: "&7You are now viewing %1%'s EnderChest"
   viewing-own: "&aYou are viewing your EnderChest"
@@ -52,4 +53,4 @@ messages:
   only-players: "&cThis command can only be used by players."
   config-reloaded: "&aConfiguration reloaded successfully."
   usage: "&cUsage: /enderchest open"
-  achest-usage: "&cUsage: /achest <reload|view|delete> [player]"
+  achest-usage: "&cUsage: /achest <help|reload|view|delete> [player]"
